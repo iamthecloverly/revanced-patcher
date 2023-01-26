@@ -13,7 +13,6 @@ import org.jf.dexlib2.builder.MutableMethodImplementation
 import org.jf.dexlib2.builder.instruction.*
 import org.jf.dexlib2.iface.Method
 import org.jf.dexlib2.iface.instruction.Instruction
-import org.jf.dexlib2.iface.reference.MethodReference
 import org.jf.dexlib2.immutable.ImmutableMethod
 import org.jf.dexlib2.immutable.ImmutableMethodImplementation
 import java.io.OutputStream
@@ -43,17 +42,6 @@ fun MutableMethodImplementation.removeInstructions(index: Int, count: Int) {
     for (i in count downTo 0) {
         this.removeInstruction(index + i)
     }
-}
-
-/**
- * Compare a method to another, considering name and parameters.
- * @param otherMethod The method to compare against.
- * @return True if the methods match given the conditions.
- */
-fun Method.softCompareTo(otherMethod: MethodReference): Boolean {
-    return this.name == otherMethod.name && parametersEqual(
-        this.parameterTypes, otherMethod.parameterTypes
-    )
 }
 
 /**
@@ -139,10 +127,10 @@ fun MutableMethod.addInstructions(index: Int, smali: String, externalLabels: Lis
 
     // Add the compiled list of instructions to the method.
     val methodImplementation = this.implementation!!
-    methodImplementation.addInstructions(index, compiledInstructions)
+    methodImplementation.addInstructions(index, compiledInstructions.subList(0, compiledInstructions.size - externalLabels.size))
 
     val methodInstructions = methodImplementation.instructions
-    methodInstructions.subList(index, index + compiledInstructions.size)
+    methodInstructions.subList(index, index + compiledInstructions.size - externalLabels.size)
         .forEachIndexed { compiledInstructionIndex, compiledInstruction ->
             // If the compiled instruction is not an offset instruction, skip it.
             if (compiledInstruction !is BuilderOffsetInstruction) return@forEachIndexed
